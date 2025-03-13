@@ -1,7 +1,7 @@
 mod camera;
 mod texture;
 
-use camera::{Camera, CameraUniform};
+use camera::{Camera, CameraController, CameraUniform};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 use wgpu::util::DeviceExt;
@@ -64,6 +64,7 @@ struct State<'window> {
     camera_uniform: CameraUniform,
     camera_buffer: wgpu::Buffer,
     camera_bind_group: wgpu::BindGroup,
+    camera_controller: CameraController,
 }
 
 impl<'window> State<'window> {
@@ -177,6 +178,7 @@ impl<'window> State<'window> {
             znear: 0.1,
             zfar: 100.0,
         };
+        let camera_controller = CameraController::new(0.2);
 
         let mut camera_uniform = CameraUniform::new();
         camera_uniform.update_view_proj(&camera);
@@ -289,6 +291,7 @@ impl<'window> State<'window> {
             diffuse_bind_group,
             diffuse_texture,
             camera,
+            camera_controller,
             camera_uniform,
             camera_buffer,
             camera_bind_group,
@@ -310,10 +313,18 @@ impl<'window> State<'window> {
     }
 
     fn input(&mut self, event: &WindowEvent) -> bool {
-        false
+        self.camera_controller.process_event(event)
     }
 
-    fn update(&mut self) {}
+    fn update(&mut self) {
+        self.camera_controller.update_camera(&mut self.camera);
+        self.camera_uniform.update_view_proj(&self.camera);
+        self.queue.write_buffer(
+            &self.camera_buffer,
+            0,
+            bytemuck::cast_slice(&[self.camera_uniform]),
+        );
+    }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
