@@ -25,6 +25,7 @@ image = { version = "0.24", default-features = false, features = [
   "jpeg",
 ] }
 anyhow = "1.0.97"
+cgmath = "0.18.0"
 
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
