@@ -355,6 +355,8 @@ impl<'window> State<'window> {
             self.config.height = new_size.height;
             self.surface.configure(&self.device, &self.config);
         }
+
+        self.camera.aspect = self.config.width as f32 / self.config.height as f32;
     }
 
     fn input(&mut self, event: &WindowEvent) -> bool {
